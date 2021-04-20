@@ -1,12 +1,8 @@
+# we use itertools to create all possible combinations of a certain length
 import itertools
-# One dimensional array containing all words in the dictionary
-# Stipulated that this will only contain words with letters contained on 
-# the gameboard
-worddict = ["ahe", "edb", "ih", "words"]
-# Two dimensional array containing the actual gameboard
-# Two dimensional so that letters in each distinct subarray can be on the same
-# "side"
 
+# main function, which handles putting together all of the individual expressions
+# into the final boolean expression
 def main_func(worddict):
     # create all possible word-combos
     word_combos = covers(worddict)[1]
@@ -15,8 +11,12 @@ def main_func(worddict):
     word_covers = covers(worddict)[0]
     count = 0
     fin = ""
+    # loops through all word combinations and creates an expression for that
+    # particular word combo
     while count < len(word_covers):
+        # fetches the valid statement
         valid_statement = valid(word_combos[count])
+        # appends the word covers, word flows, and valid statements together
         fin = fin + "(" + word_covers[count] + " AND " + flows(word_combos[count][0], word_combos[count][1], 
               word_combos[count][2]) + " AND " + valid_statement + ")" + " OR "
         count +=1
@@ -27,22 +27,31 @@ def main_func(worddict):
     
     
 # creates the covers expression to check whether all of the words together
-    # cover the entire gameboard
+# cover the entire gameboard, as well as all of the possible word combos
 def covers(worddict):
+    # itertools easily allows combination calculating of a fixed length
     combos = list(itertools.combinations(worddict, 3))
     covers_list = []
+    # this loop creates the actual covers expression
     for word_combo in combos:
         str = ""
         for word in word_combo:
             str = str + word + "-"
         str = str + "covers"
         covers_list.append(str)
+    # since having both the list of combinations and the covers expression
+    # are helpful later, we return both
     return covers_list, combos
 
 
 #Creates the wxwywzflow? subexpression given w1, w2, and w3.
 #Adds no spaces padding to beginning or end.
 def flows(w1, w2, w3):
+    # with three words, there are six possible orderings of how the words
+    # could follow one another. if even one of these orderings flows,
+    # this means the flows expression is satisfied. so, we create the
+    # six possible flow orderings, and attach the orderings with " OR "
+    # to represent that only one of these must be satisfied.
     l1 = "((%s->%s AND %s->%s) OR " % (w1, w2, w2, w3) 
     l2 = "(%s->%s AND %s->%s) OR " % (w1, w3, w3, w2)
     l3 = "(%s->%s AND %s->%s) OR " % (w2, w3, w3, w1)
@@ -76,14 +85,17 @@ def valid(combos):
                 inner_count +=1
         count +=1
     # converting a list into dictionary keys and then back into a list is
-    # an easy way to remove any duplicates, because dict keys are unique
+    # an easy way to remove any duplicates, because dict keys are unique.
+    # we do not need duplicates - we only need to check the validity of a 
+    # substring once. ordering does not matter. if "hi" is valid, so is "ih",
+    # which is why we choose to alphabetize and remove duplicates.
     letter_combos = list(dict.fromkeys(letter_combos))
     # from here, we just need to add the DS (duplicate side) and AND 
     # to the letter combinations
     final_string = ""
     for each in letter_combos:
         final_string = final_string + "DS" + " AND "  + each
-    # this will add an extra "DS AND " at the beginning; this slices it out
+    # this loop will add an extra "DS AND " at the beginning; this slices it out
     final_string = final_string[7:]
     # it will also not add the last "DS" at the end, so we add it in
     final_string = final_string + "DS"
